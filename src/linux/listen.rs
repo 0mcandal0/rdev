@@ -2,26 +2,26 @@ extern crate libc;
 extern crate x11;
 use crate::linux::common::{convert, FALSE, KEYBOARD};
 use crate::linux::keyboard::Keyboard;
-use crate::rdev::{Callback, Event, ListenError};
+use crate::rdev::{Event, ListenError};
 use std::convert::TryInto;
 use std::ffi::CStr;
-use std::os::raw::{c_char, c_int, c_uchar, c_uint};
+use std::os::raw::{c_char, c_int, c_uchar, c_uint, c_ulong};
 use std::ptr::null;
 use x11::xlib;
 use x11::xrecord;
 
-fn default_callback(event: Event) {
-    println!("Default : Event {:?}", event);
-}
+static mut RECORD_ALL_CLIENTS: c_ulong = xrecord::XRecordAllClients;
+static mut GLOBAL_CALLBACK: Option<Box<dyn FnMut(Event)>> = None;
 
-static mut GLOBAL_CALLBACK: Callback = default_callback;
-
-pub fn listen(callback: Callback) -> Result<(), ListenError> {
-    let keyboard = Keyboard::new().ok_or_else(|| ListenError::KeyboardError)?;
+pub fn listen<T>(callback: T) -> Result<(), ListenError>
+where
+    T: FnMut(Event) + 'static,
+{
+    let keyboard = Keyboard::new().ok_or(ListenError::KeyboardError)?;
 
     unsafe {
         KEYBOARD = Some(keyboard);
-        GLOBAL_CALLBACK = callback;
+        GLOBAL_CALLBACK = Some(Box::new(callback));
         // Open displays
         let dpy_control = xlib::XOpenDisplay(null());
         if dpy_control.is_null() {
@@ -43,7 +43,7 @@ pub fn listen(callback: Callback) -> Result<(), ListenError> {
         let context = xrecord::XRecordCreateContext(
             dpy_control,
             0,
-            &mut xrecord::XRecordAllClients,
+            &mut RECORD_ALL_CLIENTS,
             1,
             &mut &mut record_range as *mut &mut xrecord::XRecordRange
                 as *mut *mut xrecord::XRecordRange,
@@ -106,7 +106,9 @@ unsafe extern "C" fn record_callback(
     let y = xdatum.root_y as f64;
 
     if let Some(event) = convert(&mut KEYBOARD, code, type_, x, y) {
-        GLOBAL_CALLBACK(event);
+        if let Some(callback) = &mut GLOBAL_CALLBACK {
+            callback(event);
+        }
     }
     xrecord::XRecordFreeData(raw_data);
 }

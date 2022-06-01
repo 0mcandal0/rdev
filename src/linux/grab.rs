@@ -1,6 +1,6 @@
 use crate::linux::common::Display;
 use crate::linux::keyboard::Keyboard;
-use crate::rdev::{Button, Event, EventType, GrabCallback, GrabError, Key, KeyboardState};
+use crate::rdev::{Button, Event, EventType, GrabError, Key, KeyboardState};
 use epoll::ControlOptions::{EPOLL_CTL_ADD, EPOLL_CTL_DEL};
 use evdev_rs::{
     enums::{EventCode, EV_KEY, EV_REL},
@@ -301,15 +301,16 @@ fn evdev_event_to_rdev_event(
 //     }
 // }
 
-pub fn grab(callback: GrabCallback) -> Result<(), GrabError> {
-    let mut kb = Keyboard::new().ok_or_else(|| GrabError::KeyboardError)?;
-    let display = Display::new().ok_or_else(|| GrabError::MissingDisplayError)?;
-    let (width, height) = display
-        .get_size()
-        .ok_or_else(|| GrabError::MissingDisplayError)?;
+pub fn grab<T>(callback: T) -> Result<(), GrabError>
+where
+    T: Fn(Event) -> Option<Event> + 'static,
+{
+    let mut kb = Keyboard::new().ok_or(GrabError::KeyboardError)?;
+    let display = Display::new().ok_or(GrabError::MissingDisplayError)?;
+    let (width, height) = display.get_size().ok_or(GrabError::MissingDisplayError)?;
     let (current_x, current_y) = display
         .get_mouse_pos()
-        .ok_or_else(|| GrabError::MissingDisplayError)?;
+        .ok_or(GrabError::MissingDisplayError)?;
     let mut x = current_x as f64;
     let mut y = current_y as f64;
     let w = width as f64;
@@ -346,8 +347,7 @@ where
     //grab devices
     let _grab = devices
         .iter_mut()
-        .map(|device| device.grab(evdev_rs::GrabMode::Grab))
-        .collect::<io::Result<()>>()?;
+        .try_for_each(|device| device.grab(evdev_rs::GrabMode::Grab))?;
 
     // create buffer for epoll to fill
     let mut epoll_buffer = [epoll::Event::new(epoll::Events::empty(), 0); 4];
