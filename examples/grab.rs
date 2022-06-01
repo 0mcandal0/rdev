@@ -9,11 +9,12 @@ fn main() {
 
 fn callback(event: Event) -> Option<Event> {
     println!("My callback {:?}", event);
-    match event.event_type {
-        EventType::KeyPress(Key::Tab) => {
-            println!("Cancelling tab !");
-            None
-        }
-        _ => Some(event),
-    }
+    Some(event)
+    // match event.event_type {
+    //     EventType::KeyPress(Key::Tab) => {
+    //         println!("Cancelling tab !");
+    //         None
+    //     }
+    //     _ => Some(event),
+    // }
 }

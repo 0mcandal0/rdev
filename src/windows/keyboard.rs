@@ -39,14 +39,40 @@ impl Keyboard {
         let code = get_code(lpdata);
         let scan_code = get_scan_code(lpdata);
 
-        self.set_global_state()?;
+        // self.set_global_state()?;
         self.get_code_name(code, scan_code)
     }
 
-    pub(crate) unsafe fn set_global_state(&mut self) -> Option<()> {
+    // pub(crate) unsafe fn set_global_state(&mut self) -> Option<()> {
+    //     let mut state = [0_u8; 256];
+    //     let state_ptr = state.as_mut_ptr();
+
+    //     let _shift = GetKeyState(VK_SHIFT);
+    //     let current_window_thread_id = GetWindowThreadProcessId(GetForegroundWindow(), null_mut());
+    //     let thread_id = GetCurrentThreadId();
+    //     // Attach to active thread so we can get that keyboard state
+    //     let status = if winuser::AttachThreadInput(thread_id, current_window_thread_id, TRUE) == 1 {
+    //         // Current state of the modifiers in keyboard
+    //         let status = GetKeyboardState(state_ptr);
+
+    //         // Detach
+    //         winuser::AttachThreadInput(thread_id, current_window_thread_id, FALSE);
+    //         status
+    //     } else {
+    //         // Could not attach, perhaps it is this process?
+    //         GetKeyboardState(state_ptr)
+    //     };
+
+    //     if status != 1 {
+    //         return None;
+    //     }
+    //     self.last_state = state;
+    //     Some(())
+    // }
+
+    pub(crate) unsafe fn get_code_name(&mut self, code: UINT, scan_code: UINT) -> Option<String> {
         let mut state = [0_u8; 256];
         let state_ptr = state.as_mut_ptr();
-
         let _shift = GetKeyState(VK_SHIFT);
         let current_window_thread_id = GetWindowThreadProcessId(GetForegroundWindow(), null_mut());
         let thread_id = GetCurrentThreadId();
@@ -66,13 +92,7 @@ impl Keyboard {
         if status != 1 {
             return None;
         }
-        self.last_state = state;
-        Some(())
-    }
 
-    pub(crate) unsafe fn get_code_name(&mut self, code: UINT, scan_code: UINT) -> Option<String> {
-        let current_window_thread_id = GetWindowThreadProcessId(GetForegroundWindow(), null_mut());
-        let state_ptr = self.last_state.as_mut_ptr();
         const BUF_LEN: i32 = 32;
         let mut buff = [0_u16; BUF_LEN as usize];
         let buff_ptr = buff.as_mut_ptr();
@@ -95,7 +115,7 @@ impl Keyboard {
             buff = [0; 32];
             let buff_ptr = buff.as_mut_ptr();
             let last_state_ptr = self.last_state.as_mut_ptr();
-            ToUnicodeEx(
+            let len2 = ToUnicodeEx(
                 self.last_code,
                 self.last_scan_code,
                 last_state_ptr,
@@ -104,11 +124,15 @@ impl Keyboard {
                 0,
                 layout,
             );
-            self.last_code = 0;
+
+            if len2 == -1 {
+                self.last_code = 0;
+            }
         } else {
             self.last_code = code;
             self.last_scan_code = scan_code;
             self.last_is_dead = is_dead;
+            self.last_state = state.clone();
         }
         result
     }
