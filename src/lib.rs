@@ -312,8 +312,14 @@ where
 ///     });
 /// }
 /// ```
+#[cfg(target_os = "windows")]
 pub fn simulate(event_type: &EventType) -> Result<(), SimulateError> {
     _simulate(event_type)
+}
+
+#[cfg(target_os = "linux")]
+pub fn simulate(display_name: Option<&str>, event_type: &EventType) -> Result<(), SimulateError> {
+    _simulate(display_name, event_type)
 }
 
 /// Returns the size in pixels of the main screen.
@@ -325,8 +331,13 @@ pub fn simulate(event_type: &EventType) -> Result<(), SimulateError> {
 /// let (w, h) = display_size().unwrap();
 /// println!("My screen size : {:?}x{:?}", w, h);
 /// ```
+#[cfg(target_os = "windows")]
 pub fn display_size() -> Result<(u64, u64), DisplayError> {
     _display_size()
+}
+#[cfg(target_os = "linux")]
+pub fn display_size(display_name: Option<&str>) -> Result<(u64, u64), DisplayError> {
+    _display_size(display_name)
 }
 
 #[cfg(feature = "unstable_grab")]
@@ -377,9 +388,10 @@ mod tests {
     use super::*;
 
     #[test]
+    #[cfg(target_os = "linux")]
     fn test_keyboard_state() {
         // S
-        let mut keyboard = Keyboard::new().unwrap();
+        let mut keyboard = Keyboard::new(Some(":1")).unwrap();
         let char_s = keyboard.add(&EventType::KeyPress(Key::KeyS)).unwrap();
         assert_eq!(
             char_s,
