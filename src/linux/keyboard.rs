@@ -74,9 +74,6 @@ impl Drop for Keyboard {
 impl Keyboard {
     pub fn new(display_name: Option<&str>) -> Option<Keyboard> {
         unsafe {
-            
-            let mut dpy_name;
-
             let dpy_name = if let Some(name) = display_name {
                 CString::new(name).expect("Can't creat CString(DisplayName)").as_ptr()
             } else {
