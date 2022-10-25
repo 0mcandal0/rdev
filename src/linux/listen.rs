@@ -13,11 +13,11 @@ use x11::xrecord;
 static mut RECORD_ALL_CLIENTS: c_ulong = xrecord::XRecordAllClients;
 static mut GLOBAL_CALLBACK: Option<Box<dyn FnMut(Event)>> = None;
 
-pub fn listen<T>(callback: T) -> Result<(), ListenError>
+pub fn listen<T>(display_name: Option<&str>, callback: T) -> Result<(), ListenError>
 where
     T: FnMut(Event) + 'static,
 {
-    let keyboard = Keyboard::new().ok_or(ListenError::KeyboardError)?;
+    let keyboard = Keyboard::new(display_name).ok_or(ListenError::KeyboardError)?;
 
     unsafe {
         KEYBOARD = Some(keyboard);
