@@ -79,7 +79,8 @@ impl Display {
     pub fn new(display_name: Option<&str>) -> Option<Display> {
         unsafe {
             let dpy_name = if let Some(name) = display_name {
-                CString::new(name).expect("Can't creat CString(DisplayName)").as_ptr()
+                let dn = CString::new(name).expect("Can't creat CString(DisplayName)");
+                dn.as_ptr()
             } else {
                 null()
             };

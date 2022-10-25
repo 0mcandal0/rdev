@@ -26,7 +26,8 @@ where
         // Open displays
         
         let dpy_name = if let Some(name) = display_name {
-                CString::new(name).expect("Can't creat CString(DisplayName)").as_ptr()
+                let dn = CString::new(name).expect("Can't creat CString(DisplayName)");
+                dn.as_ptr()
             } else {
                 null()
             };
@@ -34,12 +35,16 @@ where
         let dpy_control = xlib::XOpenDisplay(dpy_name);
         if dpy_control.is_null() {
             return Err(ListenError::MissingDisplayError);
+        } else {
+            println!("DPY_CONTROL OK");
         }
         let extension_name = CStr::from_bytes_with_nul(b"RECORD\0")
             .map_err(|_| ListenError::XRecordExtensionError)?;
         let extension = xlib::XInitExtension(dpy_control, extension_name.as_ptr());
         if extension.is_null() {
             return Err(ListenError::XRecordExtensionError);
+        } else {
+            println!("EXTENSION NAME OK");
         }
 
         // Prepare record range
@@ -60,6 +65,8 @@ where
 
         if context == 0 {
             return Err(ListenError::RecordContextError);
+        } else {
+            println!("CONTEXT OK");
         }
 
         xlib::XSync(dpy_control, FALSE);
