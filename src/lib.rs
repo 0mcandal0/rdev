@@ -265,11 +265,19 @@ use crate::windows::{display_size as _display_size, listen as _listen, simulate 
 ///     }
 /// }
 /// ```
+#[cfg(target_os = "windows")]
 pub fn listen<T>(callback: T) -> Result<(), ListenError>
 where
     T: FnMut(Event) + 'static,
 {
     _listen(callback)
+}
+#[cfg(target_os = "linux")]
+pub fn listen<T>(display_name: Option<&str>, callback: T) -> Result<(), ListenError>
+where
+    T: FnMut(Event) + 'static,
+{
+    _listen(display_name, callback)
 }
 
 /// Sending some events
