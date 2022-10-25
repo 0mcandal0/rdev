@@ -18,10 +18,10 @@ pub fn listen<T>(display_name: Option<&str>, callback: T) -> Result<(), ListenEr
 where
     T: FnMut(Event) + 'static,
 {
-    let keyboard = Keyboard::new(display_name).ok_or(ListenError::KeyboardError)?;
+    let keyboard = Keyboard::new(display_name).unwrap();
 
     unsafe {
-        KEYBOARD = Some(keyboard);
+        KEYBOARD = keyboard;
         GLOBAL_CALLBACK = Some(Box::new(callback));
         // Open displays
         
