@@ -23,7 +23,14 @@ where
         KEYBOARD = Some(keyboard);
         GLOBAL_CALLBACK = Some(Box::new(callback));
         // Open displays
-        let dpy_control = xlib::XOpenDisplay(null());
+        
+        let dpy_name = if let Some(name) = display_name {
+                CString::new(name).expect("Can't creat CString(DisplayName)").as_ptr()
+            } else {
+                null()
+            };
+        
+        let dpy_control = xlib::XOpenDisplay(dpy_name);
         if dpy_control.is_null() {
             return Err(ListenError::MissingDisplayError);
         }
