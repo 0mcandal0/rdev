@@ -77,16 +77,11 @@ impl Keyboard {
             
             let mut dpy_name;
 
-            if display_name.is_some() {
-                dpy_name = display_name
-                    .map(std::ffi::CString::new)
-                    .transpose()
-                    .expect("Error getting X11 display")
-                    .as_deref()
-                    .as_ptr();
+            let dpy_name = if let Ok(name) = display_name {
+                CString::new(name).expect("Can't creat CString(DisplayName)")
             } else {
-                dpy_name = null();
-            }
+                null()
+            };
             
             // https://stackoverflow.com/questions/18246848/get-utf-8-input-with-x11-display#
             let string = CString::new("@im=none").expect("Can't creat CString");
