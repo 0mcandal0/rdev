@@ -77,7 +77,7 @@ impl Keyboard {
             
             let mut dpy_name;
 
-            let dpy_name = if let Ok(name) = display_name {
+            let dpy_name = if let Some(name) = display_name {
                 CString::new(name).expect("Can't creat CString(DisplayName)").as_ptr()
             } else {
                 null()
