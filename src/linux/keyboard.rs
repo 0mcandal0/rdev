@@ -85,7 +85,7 @@ impl Keyboard {
             let ret = xlib::XSetLocaleModifiers(string.as_ptr());
             NonNull::new(ret).expect("ptr is null!");
 
-            let dpy = xlib::XOpenDisplay(dyp_name);
+            let dpy = xlib::XOpenDisplay(dpy_name);
             if dpy.is_null() {
                 return None;
             }
