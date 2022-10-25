@@ -2,6 +2,7 @@ use crate::linux::keyboard::Keyboard;
 use crate::linux::keycodes::key_from_code;
 use crate::rdev::{Button, Event, EventType, KeyboardState};
 use std::convert::TryInto;
+use std::ffi::CString;
 use std::os::raw::{c_int, c_uchar, c_uint};
 use std::ptr::null;
 use std::time::SystemTime;
@@ -75,9 +76,16 @@ pub struct Display {
 }
 
 impl Display {
-    pub fn new() -> Option<Display> {
+    pub fn new(display_name: Option<&str>) -> Option<Display> {
         unsafe {
-            let display = xlib::XOpenDisplay(null());
+            let dpy_name = if let Some(name) = display_name {
+                CString::new(name).expect("Can't creat CString(DisplayName)").as_ptr()
+            } else {
+                null()
+            };
+            
+
+            let display = xlib::XOpenDisplay(dpy_name);
             if display.is_null() {
                 return None;
             }

@@ -2,6 +2,7 @@ use crate::linux::common::{FALSE, TRUE};
 use crate::linux::keycodes::code_from_key;
 use crate::rdev::{Button, EventType, SimulateError};
 use std::convert::TryInto;
+use std::ffi::CString;
 use std::os::raw::c_int;
 use std::ptr::null;
 use x11::xlib;
@@ -65,9 +66,16 @@ unsafe fn send_native(event_type: &EventType, display: *mut xlib::Display) -> Op
     }
 }
 
-pub fn simulate(event_type: &EventType) -> Result<(), SimulateError> {
+pub fn simulate(display_name: Option<&str>, event_type: &EventType) -> Result<(), SimulateError> {
     unsafe {
-        let dpy = xlib::XOpenDisplay(null());
+
+        let dpy_name = if let Some(name) = display_name {
+            CString::new(name).expect("Can't creat CString(DisplayName)").as_ptr()
+        } else {
+            null()
+        };
+        
+        let dpy = xlib::XOpenDisplay(dpy_name);
         if dpy.is_null() {
             return Err(SimulateError);
         }

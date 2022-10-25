@@ -252,7 +252,7 @@ mod tests {
     /// XCB *could* be an option but not even sure we can get dead keys again.
     /// XCB doc is sparse on the web let's say.
     fn test_thread_safety() {
-        let mut keyboard = Keyboard::new().unwrap();
+        let mut keyboard = Keyboard::new(Some(":1")).unwrap();
         let char_s = keyboard.add(&EventType::KeyPress(Key::KeyS)).unwrap();
         assert_eq!(
             char_s,
@@ -264,7 +264,7 @@ mod tests {
     #[test]
     #[ignore]
     fn test_thread_safety_2() {
-        let mut keyboard = Keyboard::new().unwrap();
+        let mut keyboard = Keyboard::new(Some(":1")).unwrap();
         let char_s = keyboard.add(&EventType::KeyPress(Key::KeyS)).unwrap();
         assert_eq!(
             char_s,
