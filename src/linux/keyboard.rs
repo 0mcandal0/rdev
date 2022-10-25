@@ -73,13 +73,21 @@ impl Drop for Keyboard {
 
 impl Keyboard {
     pub fn new(display_name: Option<&str>) -> Option<Keyboard> {
+
         unsafe {
-            let dpy_name = if let Some(name) = display_name {
-                let dn = CString::new(name).expect("Can't creat CString(DisplayName)");
-                dn.as_ptr()
-            } else {
-                null()
-            };
+            
+            let dpy_name = display_name.map(std::ffi::CString::new).transpose().expect("Parsing error").expect("Parsing error2").as_ptr();
+
+            // let dpy_name = if let Some(name) = display_name {
+            //     if let Ok(dn) = CString::new(name) {
+            //         dn.as_ptr()
+            //     } else {
+            //         println!("DPY_NAME CONVERSION TO CSTRING FAIL");
+            //         null()
+            //     }
+            // } else {
+            //     null()
+            // };
             
             // https://stackoverflow.com/questions/18246848/get-utf-8-input-with-x11-display#
             let string = CString::new("@im=none").expect("Can't creat CString");
@@ -89,6 +97,8 @@ impl Keyboard {
             let dpy = xlib::XOpenDisplay(dpy_name);
             if dpy.is_null() {
                 return None;
+            } else {
+                println!("OPEN DISPLAY OK");
             }
             let xim = xlib::XOpenIM(dpy, null_mut(), null_mut(), null_mut());
             NonNull::new(xim)?;
