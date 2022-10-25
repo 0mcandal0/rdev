@@ -5,6 +5,7 @@ use crate::linux::keyboard::Keyboard;
 use crate::rdev::{Event, ListenError};
 use std::convert::TryInto;
 use std::ffi::CStr;
+use std::ffi::CString;
 use std::os::raw::{c_char, c_int, c_uchar, c_uint, c_ulong};
 use std::ptr::null;
 use x11::xlib;
