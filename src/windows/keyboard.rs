@@ -166,12 +166,11 @@ impl KeyboardState for Keyboard {
                     None
                 }
                 Key::CapsLock => {
-                    self.last_state[VK_CAPITAL_] ^= HIGHBIT;
+                    self.last_state[VK_CAPITAL_] ^= 1;
                     None
                 }
                 key => {
                     let code = code_from_key(*key)?;
-                    println!("Code {:?}", code);
                     unsafe { self.get_code_name(code.into(), 0) }
                 }
             },

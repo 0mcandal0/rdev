@@ -349,7 +349,7 @@ pub use crate::macos::grab as _grab;
 #[cfg(feature = "unstable_grab")]
 #[cfg(target_os = "windows")]
 pub use crate::windows::grab as _grab;
-#[cfg(any(feature = "unstable_grab"))]
+#[cfg(feature = "unstable_grab")]
 /// Grabbing global events. In the callback, returning None ignores the event
 /// and returning the event let's it pass. There is no modification of the event
 /// possible here.
@@ -375,7 +375,7 @@ pub use crate::windows::grab as _grab;
 ///     }
 /// }
 /// ```
-#[cfg(any(feature = "unstable_grab"))]
+#[cfg(feature = "unstable_grab")]
 pub fn grab<T>(callback: T) -> Result<(), GrabError>
 where
     T: Fn(Event) -> Option<Event> + 'static,
@@ -417,6 +417,22 @@ mod tests {
         let n = keyboard.add(&EventType::KeyRelease(Key::KeyS));
         assert_eq!(n, None);
         keyboard.add(&EventType::KeyRelease(Key::ShiftLeft));
+
+        // CapsLock
+        let char_c = keyboard.add(&EventType::KeyPress(Key::KeyC)).unwrap();
+        assert_eq!(char_c, "c".to_string());
+        keyboard.add(&EventType::KeyPress(Key::CapsLock));
+        keyboard.add(&EventType::KeyRelease(Key::CapsLock));
+        let char_c = keyboard.add(&EventType::KeyPress(Key::KeyC)).unwrap();
+        assert_eq!(char_c, "C".to_string());
+        let n = keyboard.add(&EventType::KeyRelease(Key::KeyS));
+        assert_eq!(n, None);
+        keyboard.add(&EventType::KeyPress(Key::CapsLock));
+        keyboard.add(&EventType::KeyRelease(Key::CapsLock));
+        let char_c = keyboard.add(&EventType::KeyPress(Key::KeyC)).unwrap();
+        assert_eq!(char_c, "c".to_string());
+        let n = keyboard.add(&EventType::KeyRelease(Key::KeyS));
+        assert_eq!(n, None);
 
         // UsIntl layout required
         // let n = keyboard.add(&EventType::KeyPress(Key::Quote));
